@@ -1,4 +1,5 @@
 import userResolvers from "./userResolvers.js";
 import mediaResolvers from "./mediaResolvers.js";
-const resolvers = [userResolvers, mediaResolvers];
+import authResolvers from "./authResolvers.js";
+const resolvers = [userResolvers, mediaResolvers, authResolvers];
 export default resolvers;

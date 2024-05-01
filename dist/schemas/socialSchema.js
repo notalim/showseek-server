@@ -7,6 +7,8 @@ export const socialSchema = gql `
         members: [User]
         leaderboard: [User]
         awards: [Award]
+        groupCreationDate: String
+        groupInviteUrl: String
     }
 
     # Award type for community achievements

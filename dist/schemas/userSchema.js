@@ -17,15 +17,23 @@ export const userSchema = gql `
         SHOW
     }
 
+    type Award {
+        id: ID!
+        title: String!
+        description: String
+        recipient: User
+    }
+
     # Group type with members
     type Group {
         id: ID!
         name: String!
         members: [User]
+        leaderboard: [User]
+        awards: [Award]
         groupCreationDate: String
         groupInviteUrl: String
     }
-
 
     # User type with preferences and new fields
     type User {
@@ -39,6 +47,7 @@ export const userSchema = gql `
         preferences: UserPreferences
         lastWatched: [Media] # Array of last 3 things watched
         watchedMedia: [WatchedMedia] # All watched media with ratings
+        backlog: [Media] # Media the user wants to watch
         groups: [Group] # Groups the user is part of
         pin: Media # User's favorite or pinned media
         weeklyRecap: WeeklyRecap
@@ -86,6 +95,15 @@ export const userSchema = gql `
         showsLiked: [String]
         actorsLiked: [String]
     }
+    input SignUpInput {
+        phoneNumber: String!
+        password: String!
+    }
+
+    input LoginInput {
+        phoneNumber: String!
+        password: String!
+    }
 
     # Root queries and mutations
     extend type Query {
@@ -97,5 +115,13 @@ export const userSchema = gql `
 
     extend type Mutation {
         createUser(userData: UserInput!): User
+        signUp(input: SignUpInput!): AuthPayload
+        login(input: LoginInput!): AuthPayload
+    }
+
+    # Type to return upon authentication
+    type AuthPayload {
+        userId: ID!
+        token: String!
     }
 `;

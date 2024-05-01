@@ -1,4 +1,6 @@
 import db from "../config/firebase-admin.js";
+import { generateRandomUsername } from "./usernameUtils.js";
+// * Returns an array of all users as DocumentData objects
 export const getUserCollection = async () => {
     try {
         const snapshot = await db.collection("users").get();
@@ -8,6 +10,7 @@ export const getUserCollection = async () => {
         throw new Error("Failed to get user collection");
     }
 };
+// * Returns a single user by ID as DocumentData, or null if not found
 export const getUserById = async (userId) => {
     try {
         const doc = await db.collection("users").doc(userId).get();
@@ -17,44 +20,65 @@ export const getUserById = async (userId) => {
         throw new Error(`Failed to get user by ID: ${userId}`);
     }
 };
-export const getUserByEmail = async (userEmail) => {
+// * Returns a single user by email as DocumentData and prepends the id, or throws an error if not found
+export const getUserByEmail = async (email) => {
     try {
-        const userCollection = await getUserCollection();
-        return userCollection.find((user) => user.email === userEmail);
+        const userCollectionSnapshot = await db
+            .collection("users")
+            .where("email", "==", email)
+            .get();
+        if (userCollectionSnapshot.empty) {
+            throw new Error(`User not found with email: ${email}`);
+        }
+        else {
+            const userDoc = userCollectionSnapshot.docs[0];
+            return { id: userDoc.id, ...userDoc.data() };
+        }
     }
     catch (error) {
-        throw new Error(`Failed to get user by email: ${userEmail}`);
+        throw new Error(`Failed to get user by email: ${email}`);
     }
 };
+// * Returns a single user by phone number as DocumentData and prepends the id, or throws an error if not found
 export const getUserByPhoneNumber = async (phoneNumber) => {
     try {
-        const userCollection = await getUserCollection();
-        return userCollection.find((user) => user.phoneNumber === phoneNumber);
+        const userCollectionSnapshot = await db
+            .collection("users")
+            .where("phoneNumber", "==", phoneNumber)
+            .get();
+        if (userCollectionSnapshot.empty) {
+            throw new Error(`User not found with phone number: ${phoneNumber}`);
+        }
+        else {
+            const userDoc = userCollectionSnapshot.docs[0];
+            return { id: userDoc.id, ...userDoc.data() };
+        }
     }
     catch (error) {
         throw new Error(`Failed to get user by phone number: ${phoneNumber}`);
     }
 };
+// * Creates a new user with given data, returns the Firestore Document ID of the newly created user
 export const createUser = async (userData) => {
     try {
         const defaultUserData = {
-            letterboxdId: "",
-            letterboxdProfileUrl: "",
-            username: "",
+            username: generateRandomUsername(),
+            ...userData, // will have phone number and password
             name: "",
             imgUrl: "",
+            preferences: {},
+            lastWatched: [],
             watchedMedia: [],
-            preferences: {
-                genresLiked: [],
-                filmsLiked: [],
-                showsLiked: [],
-                actorsLiked: [],
-            },
-            ...userData,
+            backlog: [],
+            groups: [],
+            pin: {},
+            weeklyRecap: {},
+            previousRecaps: [],
+            accountCreationDate: new Date().toISOString(),
         };
         const userRef = db.collection("users").doc();
         await userRef.set(defaultUserData);
-        return userRef.id;
+        return userRef.id; // Returns the auto-generated Firestore Document ID
     }
     catch (error) {
         throw new Error("Failed to create new user");
