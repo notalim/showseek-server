@@ -23,10 +23,11 @@ export const userSchema = gql`
         id: ID!
         name: String!
         members: [User]
+        leaderboard: [User]
+        awards: [Award]
         groupCreationDate: String
         groupInviteUrl: String
     }
-
 
     # User type with preferences and new fields
     type User {
