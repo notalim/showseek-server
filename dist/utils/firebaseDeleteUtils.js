@@ -29,8 +29,6 @@ function deleteQueryBatch(query, batchSize, resolve, reject) {
             resolve();
             return;
         }
-        // Recurse on the next process tick, to avoid
-        // exploding the stack.
         process.nextTick(() => {
             deleteQueryBatch(query, batchSize, resolve, reject);
         });

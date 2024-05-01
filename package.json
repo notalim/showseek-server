@@ -7,7 +7,6 @@
     "scripts": {
         "build": "tsc",
         "start": "node --no-deprecation dist/server.js",
-        "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
         "build-and-run": "npm run build && npm run start",
         "init-db": "node dist/config/firebaseInitializeDb.js"
     },
@@ -24,6 +23,7 @@
     },
     "dependencies": {
         "apollo-server": "^3.13.0",
+        "axios": "^1.6.8",
         "bcrypt": "^5.1.1",
         "dotenv": "^16.4.5",
         "firebase-admin": "^12.1.0",

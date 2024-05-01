@@ -12,6 +12,22 @@ export const userSchema = gql`
         description: String
     }
 
+    # Enum for media type
+    enum EnumMediaType {
+        MOVIE
+        SHOW
+    }
+
+    # Group type with members
+    type Group {
+        id: ID!
+        name: String!
+        members: [User]
+        groupCreationDate: String
+        groupInviteUrl: String
+    }
+
+
     # User type with preferences and new fields
     type User {
         id: ID!
@@ -28,7 +44,7 @@ export const userSchema = gql`
         pin: Media # User's favorite or pinned media
         weeklyRecap: WeeklyRecap
         previousRecaps: [WeeklyRecap]
-        accountCreationDate: 
+        accountCreationDate: String
     }
 
     # Watched Media with user ratings
