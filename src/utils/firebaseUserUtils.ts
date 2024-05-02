@@ -18,13 +18,13 @@ export const getUserById = async (
 ): Promise<DocumentData | null> => {
     try {
         const doc = await db.collection("users").doc(userId).get();
-        return doc.exists ? (doc.data() as DocumentData) : null;
+        return doc.exists ? {userId, ...(doc.data() as DocumentData)} : null;
     } catch (error) {
         throw new Error(`Failed to get user by ID: ${userId}`);
     }
 };
 
-// * Returns a single user by email as DocumentData and prepends the id, or throws an error if not found
+// * Returns a single user by email as DocumentData and prepends the id, or returns undefined if not found
 export const getUserByEmail = async (
     email: string
 ): Promise<DocumentData | undefined> => {
@@ -34,7 +34,7 @@ export const getUserByEmail = async (
             .where("email", "==", email)
             .get();
         if (userCollectionSnapshot.empty) {
-            throw new Error(`User not found with email: ${email}`);
+            return undefined;
         } else {
             const userDoc = userCollectionSnapshot.docs[0];
             return { id: userDoc.id, ...(userDoc.data() as DocumentData) };
@@ -42,9 +42,9 @@ export const getUserByEmail = async (
     } catch (error) {
         throw new Error(`Failed to get user by email: ${email}`);
     }
-}
-  
-// * Returns a single user by phone number as DocumentData and prepends the id, or throws an error if not found
+};
+
+// * Returns a single user by phone number as DocumentData and prepends the id, or returns undefined if not found
 export const getUserByPhoneNumber = async (
     phoneNumber: string
 ): Promise<DocumentData | undefined> => {
@@ -53,11 +53,12 @@ export const getUserByPhoneNumber = async (
             .collection("users")
             .where("phoneNumber", "==", phoneNumber)
             .get();
+
         if (userCollectionSnapshot.empty) {
-            throw new Error(`User not found with phone number: ${phoneNumber}`);
+            return undefined;
         } else {
             const userDoc = userCollectionSnapshot.docs[0];
-            return { id: userDoc.id, ...(userDoc.data() as DocumentData) }; 
+            return { id: userDoc.id, ...(userDoc.data() as DocumentData) };
         }
     } catch (error) {
         throw new Error(`Failed to get user by phone number: ${phoneNumber}`);
@@ -90,4 +91,28 @@ export const createUser = async (
     } catch (error) {
         throw new Error("Failed to create new user");
     }
+};
+
+export const checkUsernameExists = async (username: string) => {
+    const snapshot = await db
+        .collection("users")
+        .where("username", "==", username)
+        .get();
+    return !snapshot.empty;
+};
+
+export const updateUser = async (userId: string, updates: Record<string, any>) => {
+    console.log("Updating user with ID: ", userId);
+    console.log("Updates: ", updates);
+    const userRef = db.collection("users").doc(userId);
+    try {
+        await userRef.update(updates);
+    } catch (error) {
+        console.error("Failed to update user: ", error);
+        return null;
+    }
+
+    const updatedUser = await getUserById(userId);
+
+    return updatedUser;
 };

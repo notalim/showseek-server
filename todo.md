@@ -2,9 +2,10 @@
 
 ## 1. Complete GraphQL Resolvers
 
--   [ ] **Auth Resolvers**
-    -   [ ] Implement JWT or similar token-based authentication for `login` and `signUp`.
-    -   [ ] Secure password handling in the `signUp` resolver (ensure `hashPassword` is robust).
+-   [x] **Auth Resolvers**
+    -   [x] Implement JWT or similar token-based authentication for `login` and `signUp`.
+    -   [x] Secure password handling in the `signUp` resolver (ensure `hashPassword` is robust).
+    
 -   [ ] **User Resolvers**
 
     -   [ ] Implement error handling for all user queries and mutations.

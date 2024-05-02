@@ -21,6 +21,7 @@ export const getMediaById = async (
     }
 };
 
+
 export const createMedia = async (
     mediaData: Record<string, any>
 ): Promise<string> => {

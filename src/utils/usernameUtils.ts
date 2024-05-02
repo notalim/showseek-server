@@ -1,3 +1,5 @@
+import db from "../config/firebase-admin";
+
 export const generateRandomUsername = (): string => {
     const adjectives = [
         "autumn",
@@ -158,3 +160,5 @@ export const generateRandomUsername = (): string => {
         philosophernames[Math.floor(Math.random() * philosophernames.length)];
     return `${randomAdjective}${randomPhilosopher}`;
 };
+
+

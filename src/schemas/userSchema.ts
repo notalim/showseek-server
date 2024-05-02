@@ -118,6 +118,10 @@ export const userSchema = gql`
         createUser(userData: UserInput!): User
         signUp(input: SignUpInput!): AuthPayload
         login(input: LoginInput!): AuthPayload
+
+        changeUsername(userId: ID!, newUsername: String!): User
+        updatePin(userId: ID!, mediaId: ID!): User
+        addOrUpdateEmail(userId: ID!, email: String!): User
     }
 
     # Type to return upon authentication
