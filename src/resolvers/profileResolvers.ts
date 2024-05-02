@@ -2,6 +2,8 @@ import {
     getUserById,
     checkUsernameExists,
     updateUser,
+
+    deleteUser
 } from "../utils/firebaseUserUtils.js";
 import { getMediaById } from "../utils/firebaseMediaUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
@@ -37,7 +39,6 @@ const profileResolvers = {
                     throw new Error("Failed to update pin");
                 }
 
-                // Assuming you have a function to get media by ID
                 const mediaDetails = await getMediaById(mediaId);
                 if (!mediaDetails) {
                     throw new Error("Media not found");

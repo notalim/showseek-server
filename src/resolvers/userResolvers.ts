@@ -4,6 +4,10 @@ import {
     getUserByEmail,
     getUserByPhoneNumber,
     createUser,
+    
+    addMediaToUserWatched,
+    checkIfMediaWatched,
+    getLastWatchedMedia,
 } from "../utils/firebaseUserUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
 
@@ -48,6 +52,19 @@ const resolvers = {
                 );
             }
         },
+
+        getLastWatchedMedia: async (_: any, { userId }: { userId: string }) => {
+            try {
+                return await getLastWatchedMedia(userId);
+            } catch (error: any) {
+                throw handleError(
+                    error,
+                    "Failed to retrieve last watched media",
+                    "USER_WATCHED_MEDIA_FETCH_FAILED",
+                    { userId }
+                );
+            }
+        },
     },
     Mutation: {
         createUser: async (
@@ -66,7 +83,34 @@ const resolvers = {
                 );
             }
         },
+        watchMedia: async (
+            _: any,
+            { userId, mediaId, rating }: { userId: string; mediaId: string; rating: number }
+        ) => {
+            try {
+                const mediaWatched = await checkIfMediaWatched(userId, mediaId);
+                if (mediaWatched) {
+                    throw new Error("Media already watched by user");
+                }
+
+                let watchedOn = new Date().toISOString();
+                const updatedUser = await addMediaToUserWatched(userId, mediaId, rating, watchedOn);
+                if (!updatedUser) {
+                    throw new Error("Failed to update user watched media");
+                }
+                return true;
+            } catch (error: any) {
+                throw handleError(
+                    error,
+                    "Failed to update user watched media",
+                    "USER_WATCHED_MEDIA_UPDATE_FAILED",
+                    { userId, mediaId }
+                );
+            }
+        }
     },
+
+
 };
 
 export default resolvers;

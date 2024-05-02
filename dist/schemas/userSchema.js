@@ -45,7 +45,7 @@ export const userSchema = gql `
         name: String
         imgUrl: String
         preferences: UserPreferences
-        lastWatched: [Media] # Array of last 3 things watched
+        lastWatched: [Media] # Array of last 6 things watched
         watchedMedia: [WatchedMedia] # All watched media with ratings
         backlog: [Media] # Media the user wants to watch
         groups: [Group] # Groups the user is part of
@@ -111,6 +111,8 @@ export const userSchema = gql `
         getUserByEmail(userEmail: String!): User
         getUserByPhoneNumber(phoneNumber: String!): User
         getUserCollection: [User]
+
+        getLastWatchedMedia(userId: ID!): [Media]
     }
 
     extend type Mutation {
@@ -121,6 +123,11 @@ export const userSchema = gql `
         changeUsername(userId: ID!, newUsername: String!): User
         updatePin(userId: ID!, mediaId: ID!): User
         addOrUpdateEmail(userId: ID!, email: String!): User
+
+        updateUser(userId: ID!, userData: UserInput!): User
+
+        watchMedia(userId: ID!, mediaId: ID!, rating: Int): Boolean
+
     }
 
     # Type to return upon authentication

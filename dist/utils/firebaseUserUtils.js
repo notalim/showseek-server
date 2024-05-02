@@ -105,3 +105,62 @@ export const updateUser = async (userId, updates) => {
     const updatedUser = await getUserById(userId);
     return updatedUser;
 };
+// ? Not tested yet
+export const deleteUser = async (userId) => {
+    const userRef = db.collection("users").doc(userId);
+    try {
+        await userRef.delete();
+    }
+    catch (error) {
+        console.error("Failed to delete user: ", error);
+        return false;
+    }
+    return true;
+};
+export const addMediaToUserWatched = async (userId, mediaId, rating, watchedOn) => {
+    const userRef = db.collection("users").doc(userId);
+    try {
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+            console.error("No user found with ID: ", userId);
+            return false;
+        }
+        // Asserting userData as non-nullable after checking userDoc.exists
+        const userData = userDoc.data() || {}; // Fallback to an empty object if undefined
+        const watchedMedia = userData.watchedMedia || [];
+        // Check if the media has already been watched
+        if (watchedMedia.some((media) => media.mediaId === mediaId)) {
+            console.error("Media already watched.");
+            return false; // Exit if media already watched
+        }
+        // Update the watched media list with the new entry
+        watchedMedia.push({ mediaId, rating, watchedOn });
+        await userRef.update({
+            watchedMedia: watchedMedia,
+            // Update the lastWatched 6 media items
+            lastWatched: [mediaId, ...(userData.lastWatched || [])].slice(0, 6),
+        });
+    }
+    catch (error) {
+        console.error("Failed to add media to user watched: ", error);
+        return false;
+    }
+    return true;
+};
+export const getLastWatchedMedia = async (userId) => {
+    const user = await getUserById(userId);
+    return user?.lastWatched || [];
+};
+export const checkIfMediaWatched = async (userId, mediaId) => {
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+        console.error("No user found with ID: ", userId);
+        return false;
+    }
+    const userData = userDoc.data() || {};
+    const watchedMedia = Array.isArray(userData.watchedMedia)
+        ? userData.watchedMedia
+        : [];
+    return watchedMedia.some((media) => media.mediaId === mediaId);
+};
