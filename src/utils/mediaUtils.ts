@@ -1,37 +1,48 @@
 import axios from "axios";
+const OPENAI_API_URL = "https://api.openai.com/v1/completions";
 
-const OPENAI_API_URL = "https://api.openai.com/v1/engines/davinci/completions";
-
-export const fetchVibeFromOpenAI = async (titles: string[]) => {
-    // Build a detailed prompt that encourages the AI to think creatively.
+const fetchVibeFromOpenAI = async (titles: string[]) => {
     const prompt = `
-    Imagine a weekly movie and TV show watching summary based on the following titles: ${titles.join(
-        ", "
-    )}.
-    Try to capture the essence of the watched content in a fun, brief description. Include a mix of emotions, genres, and activities portrayed in these titles.
-    Produce a vibe description that combines elements from the watched media to suggest a thematic summary for the week. Should be all lower-case and about 10-15 words.
-    Should start with an infinite verb.
-    `;
+Create a short, fun, and spicy vibe summary for a week based on watching the following movies and TV shows:
+${titles.join(", ")}
+
+Include elements specific to these movies, such as characters, themes, or memorable moments.
+Write it in lowercase, start with an infinitive verb, add ONE emoji that relates to the VIBE itself in front of the VIBE, and end with a period.
+
+Examples:
+Movies: The Matrix, Inception, The Truman Show
+Vibe: 🌀 questioning reality while navigating mind-bending dreamscapes and simulated worlds.
+
+Movies: The Avengers, The Dark Knight, Black Panther
+Vibe: 🦸‍♂️ teaming up with superheroes to save the world from villainous threats.
+
+Movies: ${titles.join(", ")}
+Vibe:`;
 
     try {
         const response = await axios.post(
             OPENAI_API_URL,
             {
+                model: "davinci-002",
                 prompt: prompt,
-                max_tokens: 60,
-                temperature: 0.7,
-                
+                max_tokens: 30,
+                temperature: 0.01,
+                stop: "\n",
             },
             {
                 headers: {
-                    Authorization: `Bearer sk-proj-sH5Dycoh1riApulmm7rMT3BlbkFJN5LaZNUprm0U4EmNaC6S`,
+                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
                     "Content-Type": "application/json",
                 },
             }
         );
-        return response.data.choices[0].text.trim();
+
+        // console.log("Vibe:", response.data.choices[0].text.trim());
+
+        return response.data.choices[0].text.trim() || "no vibe this week :("
     } catch (error) {
-        console.error("Error fetching vibe from OpenAI with Axios: ", error);
-        throw error;
+        console.error("Error fetching vibe from OpenAI:", error);
     }
 };
+
+export { fetchVibeFromOpenAI };
