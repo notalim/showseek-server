@@ -46,7 +46,7 @@ const resolvers = {
                 throw handleError(error, "Failed to create user", "USER_CREATION_FAILED", { userData });
             }
         },
-        watchMedia: async (_, { userId, mediaId, rating }) => {
+        watchMedia: async (_, { userId, mediaId, rating, }) => {
             try {
                 const mediaWatched = await checkIfMediaWatched(userId, mediaId);
                 if (mediaWatched) {
@@ -60,9 +60,9 @@ const resolvers = {
                 return true;
             }
             catch (error) {
-                throw handleError(error, "Failed to update user watched media", "USER_WATCHED_MEDIA_UPDATE_FAILED", { userId, mediaId });
+                throw handleError(error, error.message, error.code || "INTERNAL_SERVER_ERROR", { userId, mediaId });
             }
-        }
+        },
     },
 };
 export default resolvers;

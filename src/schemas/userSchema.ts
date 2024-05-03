@@ -111,7 +111,7 @@ export const userSchema = gql`
         getUserById(userId: ID!): User
         getUserByEmail(userEmail: String!): User
         getUserByPhoneNumber(phoneNumber: String!): User
-        getUserCollection: [User]
+        getAllUsers: [User]
 
         getLastWatchedMedia(userId: ID!): [Media]
     }

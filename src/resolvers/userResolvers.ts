@@ -4,12 +4,12 @@ import {
     getUserByEmail,
     getUserByPhoneNumber,
     createUser,
-    
     addMediaToUserWatched,
     checkIfMediaWatched,
     getLastWatchedMedia,
 } from "../utils/firebaseUserUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
+import { ApolloError } from "apollo-server-errors";
 
 const resolvers = {
     Query: {
@@ -85,7 +85,11 @@ const resolvers = {
         },
         watchMedia: async (
             _: any,
-            { userId, mediaId, rating }: { userId: string; mediaId: string; rating: number }
+            {
+                userId,
+                mediaId,
+                rating,
+            }: { userId: string; mediaId: string; rating: number }
         ) => {
             try {
                 const mediaWatched = await checkIfMediaWatched(userId, mediaId);
@@ -94,7 +98,12 @@ const resolvers = {
                 }
 
                 let watchedOn = new Date().toISOString();
-                const updatedUser = await addMediaToUserWatched(userId, mediaId, rating, watchedOn);
+                const updatedUser = await addMediaToUserWatched(
+                    userId,
+                    mediaId,
+                    rating,
+                    watchedOn
+                );
                 if (!updatedUser) {
                     throw new Error("Failed to update user watched media");
                 }
@@ -102,15 +111,13 @@ const resolvers = {
             } catch (error: any) {
                 throw handleError(
                     error,
-                    "Failed to update user watched media",
-                    "USER_WATCHED_MEDIA_UPDATE_FAILED",
+                    error.message,
+                    error.code || "INTERNAL_SERVER_ERROR",
                     { userId, mediaId }
                 );
             }
-        }
+        },
     },
-
-
 };
 
 export default resolvers;

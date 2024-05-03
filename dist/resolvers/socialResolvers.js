@@ -1,4 +1,4 @@
-import { fetchVibeFromOpenAI } from "../utils/mediaUtils.js";
+import { fetchVibeFromOpenAI } from "../utils/vibeUtils.js";
 import { getLastWatchedMedia } from "../utils/firebaseUserUtils.js";
 const resolvers = {
     Query: {
@@ -6,7 +6,7 @@ const resolvers = {
             try {
                 const lastWatched = await getLastWatchedMedia(userId);
                 if (lastWatched.length === 0) {
-                    return { titles: [], vibe: "hasn't watched anything" };
+                    return { titles: [], vibe: "no vibe this week :(" };
                 }
                 const titles = lastWatched.map((item) => item.title);
                 const vibe = await fetchVibeFromOpenAI(titles);

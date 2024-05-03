@@ -1,7 +1,15 @@
 import axios from "axios";
-const OPENAI_API_URL = "https://api.openai.com/v1/completions";
+import { getAllUsers, updateUserVibe } from "./firebaseUserUtils.js";
 
-const fetchVibeFromOpenAI = async (titles: string[]) => {
+const OPENAI_API_URL = "https://api.openai.com/v1/completions";
+const DEFAULT_VIBE = "no vibe this week :(";
+
+/**
+ * Fetches a vibe summary from OpenAI based on the titles of movies and TV shows
+ * @param {string[]} titles - Array of movie and TV show titles
+ * @returns {Promise<string>} - Vibe summary
+ */
+const fetchVibeFromOpenAI = async (titles: string[]): Promise<string> => {
     const prompt = `
 Create a short, fun, and spicy vibe summary for a week based on watching the following movies and TV shows:
 ${titles.join(", ")}
@@ -39,10 +47,30 @@ Vibe:`;
 
         // console.log("Vibe:", response.data.choices[0].text.trim());
 
-        return response.data.choices[0].text.trim() || "no vibe this week :("
+        return response.data.choices[0].text.trim() || DEFAULT_VIBE;
     } catch (error) {
         console.error("Error fetching vibe from OpenAI:", error);
+        return DEFAULT_VIBE;
     }
 };
 
-export { fetchVibeFromOpenAI };
+/**
+ * Fetches the last watched media for all users and updates their vibe
+ * based on the media they watched
+ * @returns {Promise<void>}
+ */
+const updateAllUserVibes = async (): Promise<void> => {
+    const users = await getAllUsers(); 
+    for (const user of users) {
+        const lastWatched = user.lastWatched || [];
+        if (lastWatched.length > 0) {
+            const titles = lastWatched.map((item: any) => item.title);
+            const vibe = await fetchVibeFromOpenAI(titles);
+            await updateUserVibe(user.id, vibe); 
+        } else {
+            await updateUserVibe(user.id, DEFAULT_VIBE); 
+        }
+    }
+};
+
+export { fetchVibeFromOpenAI, updateAllUserVibes };

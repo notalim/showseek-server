@@ -1,16 +1,24 @@
 import db from "../config/firebase-admin.js";
 import { generateRandomUsername } from "./usernameUtils.js";
-// * Returns an array of all users as DocumentData objects
-export const getUserCollection = async () => {
+/**
+ * Fetches all users from the Firestore database
+ * @returns {Promise<DocumentData[]>} - An array of user objects
+ */
+export const getAllUsers = async () => {
     try {
         const snapshot = await db.collection("users").get();
-        return snapshot.docs.map((doc) => doc.data());
+        return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     }
     catch (error) {
-        throw new Error("Failed to get user collection");
+        console.error("Failed to retrieve all users:", error);
+        throw new Error("Failed to retrieve all users");
     }
 };
-// * Returns a single user by ID as DocumentData, or null if not found
+/**
+ * Fetches a single user by ID from the Firestore database
+ * @param userId
+ * @returns {Promise<User>} object with the attached userId
+ */
 export const getUserById = async (userId) => {
     try {
         const doc = await db.collection("users").doc(userId).get();
@@ -20,7 +28,11 @@ export const getUserById = async (userId) => {
         throw new Error(`Failed to get user by ID: ${userId}`);
     }
 };
-// * Returns a single user by email as DocumentData and prepends the id, or returns undefined if not found
+/**
+ * Fetches a single user by email from the Firestore database
+ * @param email
+ * @returns {Promise<User>} object with the attached userId
+ */
 export const getUserByEmail = async (email) => {
     try {
         const userCollectionSnapshot = await db
@@ -39,7 +51,11 @@ export const getUserByEmail = async (email) => {
         throw new Error(`Failed to get user by email: ${email}`);
     }
 };
-// * Returns a single user by phone number as DocumentData and prepends the id, or returns undefined if not found
+/**
+ * Fetches a single user by phone number from the Firestore database
+ * @param phoneNumber
+ * @returns {Promise<User>} object with the attached userId
+ */
 export const getUserByPhoneNumber = async (phoneNumber) => {
     try {
         const userCollectionSnapshot = await db
@@ -58,7 +74,11 @@ export const getUserByPhoneNumber = async (phoneNumber) => {
         throw new Error(`Failed to get user by phone number: ${phoneNumber}`);
     }
 };
-// * Creates a new user with given data, returns the Firestore Document ID of the newly created user
+/**
+ * Creates a new user in the Firestore database
+ * @param userData
+ * @returns {string} - The ID of the newly created user
+ */
 export const createUser = async (userData) => {
     try {
         const defaultUserData = {
@@ -84,6 +104,11 @@ export const createUser = async (userData) => {
         throw new Error("Failed to create new user");
     }
 };
+/**
+ * Checks if a username already exists in the Firestore database
+ * @param {string} username - The username to check
+ * @returns {Promise<boolean>} - True if the username exists, false otherwise
+ */
 export const checkUsernameExists = async (username) => {
     const snapshot = await db
         .collection("users")
@@ -91,6 +116,12 @@ export const checkUsernameExists = async (username) => {
         .get();
     return !snapshot.empty;
 };
+/**
+ * Updates a user in the Firestore database
+ * @param userId
+ * @param updates
+ * @returns {Promise<User>} - The updated user object
+ */
 export const updateUser = async (userId, updates) => {
     console.log("Updating user with ID: ", userId);
     console.log("Updates: ", updates);
@@ -105,7 +136,30 @@ export const updateUser = async (userId, updates) => {
     const updatedUser = await getUserById(userId);
     return updatedUser;
 };
+/**
+ * Updates a user's weekly vibe in the Firestore database
+ * @param userId
+ * @param vibe
+ * @returns {Promise<boolean>} - True if the user's vibe was updated, false otherwise
+ */
+export const updateUserVibe = async (userId, vibe) => {
+    const userRef = db.collection("users").doc(userId);
+    try {
+        await userRef.update({ weeklyVibe: vibe });
+        console.log(`Updated weekly vibe for user ${userId}: ${vibe}`);
+        return true; // Indicate success
+    }
+    catch (error) {
+        console.error(`Failed to update vibe for user ${userId}:`, error);
+        return false; // Indicate failure
+    }
+};
 // ? Not tested yet
+/**
+ * Deletes a user from the Firestore database
+ * @param userId
+ * @returns {Promise<boolean>} - True if the user was deleted, false otherwise
+ */
 export const deleteUser = async (userId) => {
     const userRef = db.collection("users").doc(userId);
     try {
@@ -117,6 +171,14 @@ export const deleteUser = async (userId) => {
     }
     return true;
 };
+/**
+ * Adds a media item to a user's watched list
+ * @param userId
+ * @param mediaId
+ * @param rating
+ * @param watchedOn
+ * @returns {Promise<boolean>} - True if the media was added, false otherwise
+ */
 export const addMediaToUserWatched = async (userId, mediaId, rating, watchedOn) => {
     const userRef = db.collection("users").doc(userId);
     try {
@@ -147,20 +209,28 @@ export const addMediaToUserWatched = async (userId, mediaId, rating, watchedOn) 
     }
     return true;
 };
+/**
+ * Gets the last watched media items for a user
+ * @param userId
+ * @returns {Promise<DocumentData[]>} - An array of media objects
+ */
 export const getLastWatchedMedia = async (userId) => {
     const user = await getUserById(userId);
     return user?.lastWatched || [];
 };
+/**
+ * Checks if a media item has been watched by a user
+ * @param userId
+ * @param mediaId
+ * @returns {Promise<boolean>} - True if the media has been watched, otherwise false
+ */
 export const checkIfMediaWatched = async (userId, mediaId) => {
     const userRef = db.collection("users").doc(userId);
     const userDoc = await userRef.get();
     if (!userDoc.exists) {
-        console.error("No user found with ID: ", userId);
-        return false;
+        throw new Error(`No user found with ID: ${userId}`);
     }
     const userData = userDoc.data() || {};
-    const watchedMedia = Array.isArray(userData.watchedMedia)
-        ? userData.watchedMedia
-        : [];
+    const watchedMedia = userData.watchedMedia || [];
     return watchedMedia.some((media) => media.mediaId === mediaId);
 };

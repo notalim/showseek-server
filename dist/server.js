@@ -1,9 +1,9 @@
-// Continue in server.ts
 import { ApolloServer } from "apollo-server";
 import { typeDefs } from "./schemas/index.js";
 import resolvers from "./resolvers/index.js";
 import dotenv from "dotenv";
 import { verifyToken } from "./auth.js";
+import scheduleVibeUpdates from "./jobs/vibeScheduler.js";
 dotenv.config();
 const server = new ApolloServer({
     typeDefs,
@@ -22,9 +22,10 @@ const server = new ApolloServer({
                 // - Or simply log the error and allow the request to proceed without user info
             }
         }
-        return { user }; // Always return a context object, even if `user` is null
+        return { user };
     },
 });
+scheduleVibeUpdates();
 server.listen().then(({ url }) => {
     console.log(`🚀 Server ready at ${url}`);
 });
