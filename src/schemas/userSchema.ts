@@ -34,6 +34,7 @@ export const userSchema = gql`
         awards: [Award]
         groupCreationDate: String
         groupInviteUrl: String
+        pictureUrl: String
     }
 
     # User type with preferences and new fields
@@ -49,7 +50,7 @@ export const userSchema = gql`
         lastWatched: [Media] # Array of last 6 things watched
         watchedMedia: [WatchedMedia] # All watched media with ratings
         backlog: [Media] # Media the user wants to watch
-        groups: [Group] # Groups the user is part of
+        groups: [ID] # Groups the user is part of
         pin: Media # User's favorite or pinned media
         weeklyRecap: WeeklyRecap
         previousRecaps: [WeeklyRecap]
@@ -128,7 +129,6 @@ export const userSchema = gql`
         updateUser(userId: ID!, userData: UserInput!): User
 
         watchMedia(userId: ID!, mediaId: ID!, rating: Int): Boolean
-
     }
 
     # Type to return upon authentication

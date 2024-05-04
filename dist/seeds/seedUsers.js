@@ -30,7 +30,8 @@ const seedWatchedMediaForUsers = async () => {
     const users = await getAllUsers();
     const mediaIds = await getAllMediaIds();
     for (const user of users) {
-        await seedUserWatchedMedia(user.id, mediaIds, 3, 6); // Each user watches 3-6 random media
+        await seedUserWatchedMedia(user.id, mediaIds, 3, 6);
+        console.log(`Watched media seeded for user ${user.id}`);
     }
 };
 const clearAndSeedAll = async () => {
