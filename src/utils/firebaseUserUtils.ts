@@ -269,3 +269,5 @@ export const checkIfMediaWatched = async (
 
     return watchedMedia.some((media: any) => media.mediaId === mediaId);
 };
+
+

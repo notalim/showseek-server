@@ -35,3 +35,20 @@ function deleteQueryBatch(query, batchSize, resolve, reject) {
     })
         .catch(reject);
 }
+/**
+ * Deletes all users from the Firestore database
+ * @returns {Promise<void>}
+ */
+export const clearUsersCollection = async () => {
+    const usersRef = db.collection("users");
+    const snapshot = await usersRef.get();
+    const batchSize = 500;
+    const batch = db.batch();
+    snapshot.docs.forEach((doc, index) => {
+        if (index < batchSize) {
+            batch.delete(doc.ref);
+        }
+    });
+    await batch.commit();
+    console.log("Users collection cleared.");
+};

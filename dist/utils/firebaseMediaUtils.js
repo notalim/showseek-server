@@ -70,3 +70,13 @@ export const bulkPopulateMedia = async (type, totalPages) => {
     }
     return totalAdded;
 };
+/**
+ * Gets the all media Ids from the Firestore database
+ * @param userId
+ * @returns {Promise<string[]>} - An array of media IDs
+ */
+export const getAllMediaIds = async () => {
+    const mediaRef = db.collection("media");
+    const snapshot = await mediaRef.get();
+    return snapshot.docs.map((doc) => doc.id);
+};
