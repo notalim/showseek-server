@@ -68,3 +68,23 @@ export const clearUsersCollection = async (): Promise<void> => {
     await batch.commit();
     console.log("Users collection cleared.");
 };
+
+/**
+ * Deletes all groups from the Firestore database
+ * @returns {Promise<void>}
+ */
+export const clearGroupsCollection = async (): Promise<void> => {
+    const groupsRef = db.collection("groups");
+    const snapshot = await groupsRef.get();
+    const batchSize = 500;
+    const batch = db.batch();
+
+    snapshot.docs.forEach((doc, index) => {
+        if (index < batchSize) {
+            batch.delete(doc.ref);
+        }
+    });
+
+    await batch.commit();
+    console.log("Groups collection cleared.");
+}

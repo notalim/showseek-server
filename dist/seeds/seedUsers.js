@@ -3,7 +3,7 @@ import { hashPassword } from "../utils/passwordUtils.js";
 import { getAllMediaIds } from "../utils/mediaUtils.js";
 import { seedUserWatchedMedia } from "./seedUserWatchedMedia.js";
 import { clearUsersCollection } from "../utils/firebaseDeleteUtils.js";
-import { createGroup, joinGroup } from "../utils/socialUtils.js";
+import { createGroup, joinGroup, generateGroupRecap } from "../utils/socialUtils.js";
 const users = [
     { phoneNumber: "1234567890", password: "Password123" },
     { phoneNumber: "1234567891", password: "Password123" },
@@ -39,6 +39,7 @@ async function setupGroup() {
             await joinGroup(allUsers[i].id, groupId);
             console.log(`User ${allUsers[i].id} joined the group.`);
         }
+        return groupId;
     }
     else {
         console.error("No users found to create and join group.");
@@ -57,8 +58,10 @@ const clearAndSeedAll = async () => {
         await clearUsersCollection(); // Clear users collection
         await seedUsers(); // Seed users
         await seedWatchedMediaForUsers(); // Seed watched media
-        await setupGroup(); // Create group and add users
+        const groupId = await setupGroup(); // Create group and add users
         await generateAllUserWeeklyRecaps(); // Generate weekly recaps
+        if (groupId)
+            await generateGroupRecap(groupId); // Generate group recap
         console.log("All seeding tasks completed successfully.");
     }
     catch (error) {

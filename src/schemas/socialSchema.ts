@@ -19,12 +19,18 @@ export const socialSchema = gql`
         recipient: User
     }
 
+    type LeaderboardEntry {
+        user: User
+        totalMinutesWatched: Int
+        totalWatched: Int
+    }
+
     type GroupRecap {
         totalMinutesWatched: Int
         totalWatched: Int
         topGenres: [String]
-        vibeOfTheWeek: String
         groupAwards: [Award]
+        leaderboard: [LeaderboardEntry]
     }
 
     extend type Query {

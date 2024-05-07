@@ -2,9 +2,9 @@ import { createUser, getAllUsers, generateAllUserWeeklyRecaps } from "../utils/u
 import { hashPassword } from "../utils/passwordUtils.js";
 import { getAllMediaIds } from "../utils/mediaUtils.js";
 import { seedUserWatchedMedia } from "./seedUserWatchedMedia.js";
-import { clearUsersCollection } from "../utils/firebaseDeleteUtils.js";
+import { clearUsersCollection, clearGroupsCollection } from "../utils/firebaseDeleteUtils.js";
 
-import { createGroup, joinGroup } from "../utils/socialUtils.js";
+import { createGroup, joinGroup, generateGroupRecap } from "../utils/socialUtils.js";
 
 const users = [
     { phoneNumber: "1234567890", password: "Password123" },
@@ -44,6 +44,7 @@ async function setupGroup() {
             await joinGroup(allUsers[i].id, groupId);
             console.log(`User ${allUsers[i].id} joined the group.`);
         }
+        return groupId;
     } else {
         console.error("No users found to create and join group.");
     }
@@ -62,10 +63,12 @@ const seedWatchedMediaForUsers = async () => {
 const clearAndSeedAll = async () => {
     try {
         await clearUsersCollection(); // Clear users collection
+        await clearGroupsCollection(); // Clear groups collection
         await seedUsers(); // Seed users
         await seedWatchedMediaForUsers(); // Seed watched media
-        await setupGroup(); // Create group and add users
+        const groupId = await setupGroup(); // Create group and add users
         await generateAllUserWeeklyRecaps(); // Generate weekly recaps
+        if (groupId) await generateGroupRecap(groupId); // Generate group recap
         console.log("All seeding tasks completed successfully.");
     } catch (error) {
         console.error("Error during seeding:", error);

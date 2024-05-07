@@ -63,7 +63,7 @@
 - [x] One user should create a group.
 - [x] Other 3 should join the group.
 - [ ] Users should follow each other.
-- [ ] Generate a recap for each user based on their watched media.
+- [x] Generate a recap for each user based on their watched media.
 - [ ] Generate a group recap. 
 
 ## Security Enhancements

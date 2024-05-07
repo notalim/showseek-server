@@ -1,5 +1,27 @@
 import db from "../config/firebase-admin.js";
 import { DocumentData } from "firebase-admin/firestore";
+import { getUserById } from "./userUtils.js";
+import { genreAwards } from "../data/awards.js";
+
+interface LeaderboardEntry {
+    user: DocumentData;
+    totalMinutesWatched: number;
+    totalWatched: number;
+}
+
+interface GroupRecap {
+    totalMinutesWatched: number;
+    totalWatched: number;
+    topGenres: string[];
+    groupAwards: Award[];
+    leaderboard: LeaderboardEntry[];
+}
+
+interface Award {
+    title: string;
+    description: string;
+    recipient: DocumentData;
+}
 
 /**
  * Creates a new group in the Firestore database
@@ -13,7 +35,7 @@ export const createGroup = async (
 ) => {
     const groupRef = db.collection("groups").doc();
     const groupCreationDate = new Date().toISOString();
-    const groupInviteUrl = `https://example.com/invite/${groupRef.id}`; 
+    const groupInviteUrl = `https://example.com/invite/${groupRef.id}`;
     await groupRef.set({
         ...groupData,
         groupLeader: creatorId,
@@ -32,7 +54,7 @@ export const createGroup = async (
  * Fetches a group by ID from the Firestore database
  * @param groupId - Id of the group to fetch
  * @returns {Promise<DocumentData[]>} - An array of group objects
-*/
+ */
 export const getGroupById = async (
     groupId: string
 ): Promise<DocumentData | null> => {
@@ -114,7 +136,6 @@ export const joinGroup = async (
     return false;
 };
 
-
 /**
  * Removes a user from a group in the Firestore database
  * @param userId - The ID of the user to remove
@@ -190,3 +211,91 @@ const updateUserGroups = async (
     await userRef.update({ groups: userGroups });
     return true;
 };
+
+/**
+ * Generates a weekly recap for a group, aggregating data from all members.
+ * @param groupId - The ID of the group
+ * @returns {Promise<void>}
+ */
+export const generateGroupRecap = async (groupId: string): Promise<void> => {
+    const groupDoc = await getGroupById(groupId);
+
+    if (!groupDoc || !groupDoc.members) {
+        console.error("Group not found or has no members");
+        return;
+    }
+
+    let totalMinutesWatched = 0;
+    let totalWatched = 0;
+    const genreCounts: Record<string, number> = {};
+    const awards: Award[] = [];
+    const leaderboard: LeaderboardEntry[] = [];
+
+    for (const memberId of groupDoc.members) {
+        const member = await getUserById(memberId);
+        if (member && member.weeklyRecap) {
+            const { totalMinutesWatched: memberMinutes, totalWatched: memberWatched, topGenres } = member.weeklyRecap;
+            totalMinutesWatched += memberMinutes;
+            totalWatched += memberWatched;
+
+            topGenres.forEach((genre: string) => {
+                genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+            });
+
+            leaderboard.push({
+                user: member,
+                totalMinutesWatched: memberMinutes,
+                totalWatched: memberWatched,
+            });
+        }
+    }
+
+    leaderboard.sort((a, b) => b.totalMinutesWatched - a.totalMinutesWatched);
+
+    const topGenres = Object.entries(genreCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(entry => entry[0]);
+
+    topGenres.forEach((genre) => {
+        const awardConfig = genreAwards[genre];
+        if (awardConfig && genreCounts[genre] >= 3) { // Example threshold
+            const topUser = leaderboard.find(entry => entry.user.weeklyRecap.topGenres.includes(genre));
+            if (topUser) {
+                awards.push({
+                    title: awardConfig.title,
+                    description: awardConfig.description,
+                    recipient: topUser.user,
+                });
+            }
+        }
+    });
+
+    const groupRecap: GroupRecap = {
+        totalMinutesWatched,
+        totalWatched,
+        topGenres,
+        groupAwards: awards,
+        leaderboard,
+    };
+
+    await db.collection("groups").doc(groupId).update({ groupRecap });
+    console.log("Group recap generated for group:", groupId);
+};
+
+/**
+ * Generates a weekly recap for all groups in the Firestore database
+ * @returns {Promise<number>} - The number of groups with recaps generated
+ */
+
+export const generateAllGroupRecaps = async (): Promise<number> => {
+    const groups = await getAllGroups();
+    let count = 0;
+    for (const group of groups) {
+        if (group.members && group.members.length > 0) {
+            await generateGroupRecap(group.id);
+            count++;
+        }
+    }
+    return count;
+}
