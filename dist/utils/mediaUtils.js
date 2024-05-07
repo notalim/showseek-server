@@ -1,28 +1,53 @@
-import axios from "axios";
-const OPENAI_API_URL = "https://api.openai.com/v1/engines/davinci/completions";
-export const fetchVibeFromOpenAI = async (titles) => {
-    // Build a detailed prompt that encourages the AI to think creatively.
-    const prompt = `
-    Imagine a weekly movie and TV show watching summary based on the following titles: ${titles.join(", ")}.
-    Try to capture the essence of the watched content in a fun, brief description. Include a mix of emotions, genres, and activities portrayed in these titles.
-    Produce a vibe description that combines elements from the watched media to suggest a thematic summary for the week. Should be all lower-case and about 10-15 words.
-    Should start with an infinite verb.
-    `;
+import db from "../config/firebase-admin.js";
+/**
+ * Fetches all media from the Firestore database
+ * @returns {Promise<DocumentData[]>} - An array of media objects
+ */
+export const getMediaCollection = async () => {
     try {
-        const response = await axios.post(OPENAI_API_URL, {
-            prompt: prompt,
-            max_tokens: 60,
-            temperature: 0.7,
-        }, {
-            headers: {
-                Authorization: `Bearer sk-proj-sH5Dycoh1riApulmm7rMT3BlbkFJN5LaZNUprm0U4EmNaC6S`,
-                "Content-Type": "application/json",
-            },
-        });
-        return response.data.choices[0].text.trim();
+        const snapshot = await db.collection("media").get();
+        return snapshot.docs.map((doc) => doc.data());
     }
     catch (error) {
-        console.error("Error fetching vibe from OpenAI with Axios: ", error);
-        throw error;
+        throw new Error("Failed to get media collection");
     }
+};
+/**
+ * Fetches a single media by ID from the Firestore database
+ * @param mediaId
+ * @returns {Promise<DocumentData | null>} object with the attached mediaId
+ */
+export const getMediaById = async (mediaId) => {
+    try {
+        const doc = await db.collection("media").doc(mediaId).get();
+        return doc.exists ? doc.data() : null;
+    }
+    catch (error) {
+        throw new Error(`Failed to get media by ID: ${mediaId}`);
+    }
+};
+/**
+ * Fetches media by genre from the Firestore database
+ * @param genre
+ * @returns {Promise<DocumentData[]>} - An array of media objects
+ */
+export const createMedia = async (mediaData) => {
+    try {
+        const mediaRef = db.collection("media").doc();
+        await mediaRef.set(mediaData);
+        return mediaRef.id;
+    }
+    catch (error) {
+        throw new Error("Failed to create new media");
+    }
+};
+/**
+ * Gets the all media Ids from the Firestore database
+ * @param userId
+ * @returns {Promise<string[]>} - An array of media IDs
+ */
+export const getAllMediaIds = async () => {
+    const mediaRef = db.collection("media");
+    const snapshot = await mediaRef.get();
+    return snapshot.docs.map((doc) => doc.id);
 };

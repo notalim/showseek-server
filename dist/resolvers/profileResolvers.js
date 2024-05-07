@@ -1,5 +1,5 @@
-import { checkUsernameExists, updateUser } from "../utils/firebaseUserUtils.js";
-import { getMediaById } from "../utils/firebaseMediaUtils.js";
+import { checkUsernameExists, updateUser, } from "../utils/userUtils.js";
+import { getMediaById } from "../utils/mediaUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
 const profileResolvers = {
     Mutation: {

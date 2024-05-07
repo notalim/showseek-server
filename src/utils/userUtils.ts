@@ -2,6 +2,9 @@ import db from "../config/firebase-admin.js";
 import { DocumentData } from "firebase-admin/firestore";
 import { generateRandomUsername } from "./usernameUtils.js";
 
+import { fetchVibeFromOpenAI } from "./vibeUtils.js";
+import { getMediaById } from "./mediaUtils.js";
+
 /**
  * Fetches all users from the Firestore database
  * @returns {Promise<DocumentData[]>} - An array of user objects
@@ -159,7 +162,10 @@ export const updateUser = async (
  * @param vibe
  * @returns {Promise<boolean>} - True if the user's vibe was updated, false otherwise
  */
-export const updateUserVibe = async (userId: string, vibe: string): Promise<boolean> => {
+export const updateUserVibe = async (
+    userId: string,
+    vibe: string
+): Promise<boolean> => {
     const userRef = db.collection("users").doc(userId);
     try {
         await userRef.update({ weeklyVibe: vibe });
@@ -200,6 +206,7 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
 export const addMediaToUserWatched = async (
     userId: string,
     mediaId: string,
+    title: string,
     rating: number | null,
     watchedOn: string
 ): Promise<boolean> => {
@@ -222,7 +229,7 @@ export const addMediaToUserWatched = async (
         }
 
         // Update the watched media list with the new entry
-        watchedMedia.push({ mediaId, rating, watchedOn });
+        watchedMedia.push({ mediaId, rating, watchedOn, title });
         await userRef.update({
             watchedMedia: watchedMedia,
             // Update the lastWatched 6 media items
@@ -270,4 +277,79 @@ export const checkIfMediaWatched = async (
     return watchedMedia.some((media: any) => media.mediaId === mediaId);
 };
 
+/**
+ * Generates a weekly recap for a single user based on their watched media
+ * @param {string} userId - The ID of the user to generate the recap for
+ */
+export const generateUserWeeklyRecap = async (
+    userId: string
+): Promise<void> => {
+    const user = await getUserById(userId) || {};
+    console.log(
+        `Generating recap for user: ${userId}, lastWatched: ${JSON.stringify(
+            user.lastWatched
+        )}`
+    );
 
+    if (user && user.lastWatched && user.lastWatched.length > 0) {
+        const fullMedia = await Promise.all(
+            user.lastWatched.map(async (mediaId: string) => {
+                return getMediaById(mediaId);
+            })
+        );
+
+        const totalWatched = fullMedia.length;
+        const totalMinutesWatched = fullMedia.reduce((acc, media) => {
+            return acc + (media.runtime ? media.runtime : 0);
+        }, 0);
+
+        const genreCounts = fullMedia.reduce((acc, media) => {
+            if (media.genres && Array.isArray(media.genres)) {
+                media.genres.forEach((genre: string) => {
+                    acc[genre] = (acc[genre] || 0) + 1;
+                });
+            }
+            return acc;
+        }, {});
+
+        const topGenres = Object.entries(genreCounts)
+            .sort((a: any, b: any) => b[1] - a[1])
+            .slice(0, 3)
+            .map((entry) => entry[0]);
+
+        const titles = fullMedia.map((media) => media.title);
+        const vibe = await fetchVibeFromOpenAI(titles);
+
+        const recap = {
+            totalMinutesWatched,
+            totalWatched,
+            topGenres,
+            vibeOfTheWeek: vibe,
+        };
+
+        const userRef = db.collection("users").doc(userId);
+        await userRef.update({ weeklyRecap: recap });
+        console.log(`Weekly recap generated for user ${userId}`);
+    } else {
+        const emptyRecap = {
+            totalMinutesWatched: 0,
+            totalWatched: 0,
+            topGenres: [],
+            vibeOfTheWeek: "no vibe this week :(",
+        };
+        const userRef = db.collection("users").doc(userId);
+        await userRef.update({ weeklyRecap: emptyRecap });
+        console.log(`No media watched for user ${userId}, empty recap stored.`);
+    }
+};
+
+/**
+ * Generates weekly recaps for all users based on their watched media
+ * @returns {Promise<void>}
+ */
+export const generateAllUserWeeklyRecaps = async (): Promise<void> => {
+    const users = await getAllUsers();
+    for (const user of users) {
+        await generateUserWeeklyRecap(user.id);
+    }
+};

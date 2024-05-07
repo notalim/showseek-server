@@ -1,5 +1,5 @@
 import db from "../config/firebase-admin.js";
-import { fetchMedia } from "../utils/api.js";
+import { fetchMedia } from "../services/api.js";
 import { sleep } from "../utils/helpers.js";
 
 const mediaResolvers = {

@@ -9,6 +9,9 @@ export const userSchema = gql `
         imgUrl: String
         genres: [String] # Using genre names
         description: String
+        runtime: Int
+        adult: Boolean
+        tmdbId: Int
     }
 
     # Enum for media type

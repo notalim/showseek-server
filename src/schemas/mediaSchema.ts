@@ -6,14 +6,18 @@ export const mediaSchema = gql`
         MOVIE
         SHOW
     }
+    
     type Media {
         id: ID!
-        title: String
+        title: String!
         mediatype: EnumMediaType!
         dateOfRelease: String
         imgUrl: String
         genres: [String] # Using genre names
         description: String
+        runtime: Int
+        adult: Boolean
+        tmdbId: Int
     }
 
     # Root Query for media types

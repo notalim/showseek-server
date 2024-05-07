@@ -60,8 +60,8 @@
 ### Seed Users
 - [x] Create a seed file to populate the database with 4 test users.
 - [x] Make them watch 3-6 random media each (in total).
-- [ ] One user should create a group.
-- [ ] Users should join the group.
+- [x] One user should create a group.
+- [x] Other 3 should join the group.
 - [ ] Users should follow each other.
 - [ ] Generate a recap for each user based on their watched media.
 - [ ] Generate a group recap. 

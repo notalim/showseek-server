@@ -1,8 +1,4 @@
-
-import {
-    getUserByPhoneNumber,
-    createUser,
-} from "../utils/firebaseUserUtils.js";
+import { getUserByPhoneNumber, createUser } from "../utils/userUtils.js";
 import { hashPassword, comparePassword } from "../utils/passwordUtils.js";
 import { generateToken } from "../auth.js";
 import handleError from "../utils/ApolloErrorHandling.js";
@@ -46,7 +42,7 @@ export const authResolvers = {
                 if (!user) {
                     throw new Error("User not found");
                 }
-                console.log(user)
+                console.log(user);
                 const isPasswordValid = await comparePassword(
                     password,
                     user.password
@@ -54,7 +50,7 @@ export const authResolvers = {
                 if (!isPasswordValid) {
                     throw new Error("Invalid password");
                 }
-                const token = generateToken(user.id); 
+                const token = generateToken(user.id);
                 return { userId: user.id, token };
             } catch (error: any) {
                 throw handleError(error, "Failed to login", "LOGIN_FAILED", {

@@ -1,11 +1,10 @@
-import { createUser } from "../utils/firebaseUserUtils.js";
+import { createUser, getAllUsers, generateAllUserWeeklyRecaps } from "../utils/userUtils.js";
 import { hashPassword } from "../utils/passwordUtils.js";
-import {
-    getAllMediaIds,
-} from "../utils/firebaseMediaUtils.js";
+import { getAllMediaIds } from "../utils/mediaUtils.js";
 import { seedUserWatchedMedia } from "./seedUserWatchedMedia.js";
-import { getAllUsers } from "../utils/firebaseUserUtils.js";
 import { clearUsersCollection } from "../utils/firebaseDeleteUtils.js";
+
+import { createGroup, joinGroup } from "../utils/socialUtils.js";
 
 const users = [
     { phoneNumber: "1234567890", password: "Password123" },
@@ -13,7 +12,6 @@ const users = [
     { phoneNumber: "1234567892", password: "Password123" },
     { phoneNumber: "1234567893", password: "Password123" },
 ];
-
 
 const seedUsers = async () => {
     for (const user of users) {
@@ -32,21 +30,42 @@ const seedUsers = async () => {
     }
 };
 
+async function setupGroup() {
+    const allUsers = await getAllUsers();
+    if (allUsers.length > 0) {
+        const groupData = {
+            name: "The Awesome Group",
+            description: "A group for awesome people.",
+        };
+        const groupId = await createGroup(allUsers[0].id, groupData);
+        console.log(`Group created with ID: ${groupId}`);
+
+        for (let i = 1; i < allUsers.length; i++) {
+            await joinGroup(allUsers[i].id, groupId);
+            console.log(`User ${allUsers[i].id} joined the group.`);
+        }
+    } else {
+        console.error("No users found to create and join group.");
+    }
+}
+
 const seedWatchedMediaForUsers = async () => {
     const users = await getAllUsers();
     const mediaIds = await getAllMediaIds();
 
     for (const user of users) {
         await seedUserWatchedMedia(user.id, mediaIds, 3, 6);
-        console.log(`Watched media seeded for user ${user.id}`)
+        console.log(`Watched media seeded for user ${user.id}`);
     }
 };
 
 const clearAndSeedAll = async () => {
     try {
         await clearUsersCollection(); // Clear users collection
-        await seedUsers(); 
+        await seedUsers(); // Seed users
         await seedWatchedMediaForUsers(); // Seed watched media
+        await setupGroup(); // Create group and add users
+        await generateAllUserWeeklyRecaps(); // Generate weekly recaps
         console.log("All seeding tasks completed successfully.");
     } catch (error) {
         console.error("Error during seeding:", error);

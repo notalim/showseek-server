@@ -1,4 +1,4 @@
-import { getUserByPhoneNumber, createUser, } from "../utils/firebaseUserUtils.js";
+import { getUserByPhoneNumber, createUser } from "../utils/userUtils.js";
 import { hashPassword, comparePassword } from "../utils/passwordUtils.js";
 import { generateToken } from "../auth.js";
 import handleError from "../utils/ApolloErrorHandling.js";

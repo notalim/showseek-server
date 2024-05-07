@@ -8,8 +8,10 @@
         "build": "tsc",
         "start": "node --no-deprecation dist/server.js",
         "build-and-run": "npm run build && npm run start",
-        "init-db": "node dist/config/firebaseInitializeDb.js",
-        "seed": "npm run build && node --no-deprecation dist/seeds/seedUsers.js",
+        "init-db": "node --no-deprecation dist/config/firebaseInitializeDb.js",
+        "get-genres": "node --no-deprecation dist/services/fetchGenres.js",
+        "seed-users": "npm run build && node --no-deprecation dist/seeds/seedUsers.js",
+        "seed-media": "npm run build && node --no-deprecation dist/seeds/seedMedia.js",
         "test": "jest"
     },
     "keywords": [],

@@ -1,4 +1,3 @@
-// userResolvers.ts
 import {
     getUserById,
     getUserByEmail,
@@ -7,7 +6,8 @@ import {
     addMediaToUserWatched,
     checkIfMediaWatched,
     getLastWatchedMedia,
-} from "../utils/firebaseUserUtils.js";
+} from "../utils/userUtils.js";
+import { getMediaById } from "../utils/mediaUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
 import { ApolloError } from "apollo-server-errors";
 
@@ -93,6 +93,7 @@ const resolvers = {
         ) => {
             try {
                 const mediaWatched = await checkIfMediaWatched(userId, mediaId);
+                const title = (await getMediaById(mediaId))?.title;
                 if (mediaWatched) {
                     throw new Error("Media already watched by user");
                 }
@@ -101,6 +102,7 @@ const resolvers = {
                 const updatedUser = await addMediaToUserWatched(
                     userId,
                     mediaId,
+                    title,
                     rating,
                     watchedOn
                 );

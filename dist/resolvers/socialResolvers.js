@@ -1,5 +1,5 @@
 import { fetchVibeFromOpenAI } from "../utils/vibeUtils.js";
-import { getLastWatchedMedia } from "../utils/firebaseUserUtils.js";
+import { getLastWatchedMedia } from "../utils/userUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
 import { getGroupById, getAllGroups, createGroup, updateGroupName, updateGroupPicture, joinGroup, leaveGroup, deleteGroup, } from "../utils/socialUtils.js";
 const resolvers = {

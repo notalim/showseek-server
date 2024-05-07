@@ -1,5 +1,5 @@
-// userResolvers.ts
-import { getUserById, getUserByEmail, getUserByPhoneNumber, createUser, addMediaToUserWatched, checkIfMediaWatched, getLastWatchedMedia, } from "../utils/firebaseUserUtils.js";
+import { getUserById, getUserByEmail, getUserByPhoneNumber, createUser, addMediaToUserWatched, checkIfMediaWatched, getLastWatchedMedia, } from "../utils/userUtils.js";
+import { getMediaById } from "../utils/mediaUtils.js";
 import handleError from "../utils/ApolloErrorHandling.js";
 const resolvers = {
     Query: {
@@ -49,11 +49,12 @@ const resolvers = {
         watchMedia: async (_, { userId, mediaId, rating, }) => {
             try {
                 const mediaWatched = await checkIfMediaWatched(userId, mediaId);
+                const title = (await getMediaById(mediaId))?.title;
                 if (mediaWatched) {
                     throw new Error("Media already watched by user");
                 }
                 let watchedOn = new Date().toISOString();
-                const updatedUser = await addMediaToUserWatched(userId, mediaId, rating, watchedOn);
+                const updatedUser = await addMediaToUserWatched(userId, mediaId, title, rating, watchedOn);
                 if (!updatedUser) {
                     throw new Error("Failed to update user watched media");
                 }
