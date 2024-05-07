@@ -64,7 +64,7 @@
 - [x] Other 3 should join the group.
 - [ ] Users should follow each other.
 - [x] Generate a recap for each user based on their watched media.
-- [ ] Generate a group recap. 
+- [x] Generate a group recap. 
 
 ## Security Enhancements
 - [ ] Configure CORS properly to limit cross-origin requests.

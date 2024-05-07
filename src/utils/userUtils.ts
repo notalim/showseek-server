@@ -278,6 +278,46 @@ export const checkIfMediaWatched = async (
 };
 
 /**
+ * Adds a media item to a user's backlog
+ * @param userId
+ * @param mediaId
+ * @returns {Promise<boolean>} - True if the media was added, false otherwise
+ */
+
+export const addMediaToUserBacklog = async (
+    userId: string,
+    mediaId: string
+): Promise<boolean> => {
+    const userRef = db.collection("users").doc(userId);
+    try {
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+            console.error("No user found with ID: ", userId);
+            return false;
+        }
+        const userData = userDoc.data() || {};
+        const backlog = userData.backlog || [];
+
+        if (backlog.includes(mediaId)) {
+            console.error("Media already in backlog.");
+            return false; // Exit if media already in backlog
+        }
+
+        if (userData.watchedMedia.some((media: any) => media.mediaId === mediaId)) {
+            console.error("Media already watched.");
+            return false; // Exit if media already watched
+        }
+
+        backlog.push(mediaId);
+        await userRef.update({ backlog: backlog });
+    } catch (error) {
+        console.error("Failed to add media to user backlog: ", error);
+        return false;
+    }
+    return true;
+}
+
+/**
  * Generates a weekly recap for a single user based on their watched media
  * @param {string} userId - The ID of the user to generate the recap for
  */

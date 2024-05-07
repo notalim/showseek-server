@@ -5,6 +5,7 @@ import {
     createUser,
     addMediaToUserWatched,
     checkIfMediaWatched,
+    addMediaToUserBacklog,
     getLastWatchedMedia,
 } from "../utils/userUtils.js";
 import { getMediaById } from "../utils/mediaUtils.js";
@@ -119,6 +120,34 @@ const resolvers = {
                 );
             }
         },
+        addMediaToUserBacklog: async (
+            _: any,
+            {
+                userId,
+                mediaId,
+            }: { userId: string; mediaId: string }
+        ) => {
+            try {
+                const mediaWatched = await checkIfMediaWatched(userId, mediaId);
+                if (mediaWatched) {
+                    throw new ApolloError("Media already watched by user");
+                }
+
+                const title = (await getMediaById(mediaId))?.title;
+                const success = await addMediaToUserBacklog(userId, mediaId);
+                if (!success) {
+                    throw new ApolloError("Failed to add media to user backlog");
+                }
+                return true;
+            } catch (error: any) {
+                throw handleError(
+                    error,
+                    error.message,
+                    error.code || "INTERNAL_SERVER_ERROR",
+                    { userId, mediaId }
+                );
+            }
+        }
     },
 };
 
