@@ -18,7 +18,7 @@
 
 ### Media Resolvers
 #### List and Populate Media
-- [ ] Review and finalize the `listMedia` query for fetching media items.
+- [x] Review and finalize the `listMedia` query for fetching media items.
 - [x] Implement `populateMedia` and `bulkPopulateMedia` mutations with proper error handling and data validation.
 #### Error Handling
 - [ ] Implement detailed error handling for media queries and mutations, including handling of transient and permanent errors.
